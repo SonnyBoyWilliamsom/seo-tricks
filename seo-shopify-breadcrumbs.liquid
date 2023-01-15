@@ -1,0 +1,134 @@
+{% if settings.show_breadcrumbs %}{% unless template.name == 'index' or template.name == 'cart' %}
+  <nav class="breadcrumb" role="navigation" aria-label="breadcrumbs"  itemscope itemtype="https://schema.org/BreadcrumbList">
+    <span class="d-none d-sm-inline" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem"><a class="" href="{{ routes.root_url }}" title="{{ 'general.breadcrumbs.home_link_title' | t }}" itemprop="item"><span itemprop="name">{{ 'general.breadcrumbs.home' | t }}</span></a>&nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;<meta itemprop="position" content="1" />
+    </span>
+    {% if template.name == 'product' %}
+      {% if collection %}
+        {% if settings.show_breadcrumbs_collection_link %}
+          <span class="breadcrumb__divider" aria-hidden="true">/</span>
+          <a href="{{ routes.collections_url }}">{{ 'general.search.collections' | t | replace: ':', ''}}</a>
+        {% endif %}
+        <span class="breadcrumb__divider" aria-hidden="true">/</span> 
+        {% if collection.handle %}
+          {% capture url %}{{ routes.collections_url }}/{{ collection.handle }}{% endcapture %}
+          {{ collection.title | link_to: url }}
+        {% endif %}{% else %}{% assign position_item = '1' %}{% assign first_level = false %}{% assign second_level = false %}{% assign third_level = false %}
+    	{% for collection in product.collections reversed %} 
+    		{% if first_level == false and collection.title contains "#" %}
+    			<span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                {% assign collection_check = collection.title | split: '#' %}
+                    {% if collection_check[1] != blank %}{% assign first_level = true %}{% endif %}
+                      <a href="{{ collection.url }}"  itemprop="item"><span itemprop="name">{{ collection.title | replace: "#", "" }}</span></a>
+                      <meta itemprop="position" content="{{position_item}}" />{%- unless forloop.last %}&nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;{% endunless %}
+              	</span>{% assign position_item = position_item | plus: 1 %}
+    		{% elsif second_level == false and collection.title contains "##" %}
+    			<span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                {% assign collection_check = collection.title | split: '#' %}
+                    {% if collection_check[2] != blank %}{% assign second_level = true %}{% endif %}
+                      <a href="{{ collection.url }}"  itemprop="item"><span itemprop="name">{{ collection.title | replace: "#", "" }} </span></a>
+                      <meta itemprop="position" content="{{position_item}}" />{%- unless forloop.last %}&nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;{% endunless %}
+              	</span>{% assign position_item = position_item | plus: 1 %}
+    		{% elsif third_level == false and collection.title contains "###" %}
+    			<span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                {% assign collection_check = collection.title | split: '#' %}
+                    {% if collection_check[2] != blank %}{% assign third_level = true %}{% endif %}
+                      <a href="{{ collection.url }}"  itemprop="item"><span itemprop="name">{{ collection.title | replace: "#", "" }} </span></a>
+                      <meta itemprop="position" content="{{position_item}}" />{%- unless forloop.last %}&nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;{% endunless %}
+              	</span>{% assign position_item = position_item | plus: 1 %}
+    		{% endif %}
+    	{% endfor %}
+    	{% endif %}
+      <span class="breadcrumb__divider d-none d-sm-inline" aria-hidden="true">/</span>
+      <span class="d-none d-sm-inline" itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+      	<meta itemprop="position" content="{{position_item}}" />
+        <meta itemprop="name" content="{{ product.title }}" />
+        <meta itemprop="item" content"{{ product.url }}" />
+		<span>{{ product.title }}</span>
+    </span>
+    {% elsif template.name == 'collection' and collection.handle %}
+      {% if settings.show_breadcrumbs_collection_link %}{% assign position_item = '1' %}
+          {% for link in linklists.main-menu.links %}
+            {% if link.child_active or link.active %}
+    			<span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                	<a href="{{ link.url }}"  itemprop="item"><span itemprop="name">{{ link.title | escape }}</span></a>
+                    <meta itemprop="position" content="{{position_item}}" />
+                  {% assign position_item = position_item | plus: 1 %}
+                </span>   
+              {% for clink in link.links %}
+                {% if clink.child_active or clink.active %}
+    			&nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;
+    			<span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                	<a href="{{ clink.url }}"  itemprop="item"><span itemprop="name">{{ clink.title | escape }}</span></a>
+                    <meta itemprop="position" content="{{position_item}}" />
+                  {% assign position_item = position_item | plus: 1 %}
+                </span>   
+                  {% for gclink in clink.links %}
+                    {% if gclink.child_active or gclink.active %}
+    				  &nbsp;<i class="fa fa-angle-left d-sm-inline"></i>&nbsp;
+                      <span itemprop="itemListElement" itemscope itemtype="https://schema.org/ListItem">
+                          <a href="{{ gclink.url }}"  itemprop="item"><span itemprop="name">{{ gclink.title | escape }}</span></a>
+                          <meta itemprop="position" content="{{position_item}}" />
+                        {% assign position_item = position_item | plus: 1 %}
+                      </span>  
+                    {% endif %}
+                  {%- endfor -%}
+                {% endif %}
+              {%- endfor -%}
+            {% endif %}
+          {%- endfor -%}
+		{% endif %}	
+      	<span class="breadcrumb__divider" aria-hidden="true">/</span>
+      {% if current_tags %}
+        {% capture url %}{{ routes.collections_url }}/{{ collection.handle }}{% endcapture %}
+        {{ collection.title | link_to: url }}
+
+        <span class="breadcrumb__divider" aria-hidden="true">/</span>
+
+        {% for tag in current_tags %}
+          {% if tag contains "_" %}{%- assign tag_starts_with = tag | slice: 0 -%}{% if tag_starts_with == "_" %}{% if tag_count %}{%- assign tag_count = tag_count | minus: 1 | at_least: 0 -%}{% endif %}{% continue %}{% endif %}{% endif %}
+          {% assign tag_name = tag | strip %}
+          {% assign tag_text = tag_name | capitalize %}
+          <span>{{ tag_text }}</span>
+
+          {% unless forloop.last %}
+            <span class="breadcrumb__divider" aria-hidden="true">+</span>
+          {% endunless %}
+
+        {% endfor %}
+      {% endif %}
+
+    {% elsif template.name == 'blog' %}
+
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+      {% if current_tags %}
+        {{ blog.title | link_to: blog.url }}
+        <span class="breadcrumb__divider" aria-hidden="true">/</span>
+        <span>{{ current_tags | join: " + " }}</span>
+      {% endif %}
+
+    {% elsif template.name == 'article' %}
+
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+      {{ blog.title | link_to: blog.url }}
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+
+    {% elsif template.name == 'page' %}
+
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+      <span>{{ page.title }}</span>
+
+    {% elsif template.name == 'search' %}
+
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+      <span>{{ page_title | replace: '*', '' }}</span>
+
+    {% else %}
+
+      <span class="breadcrumb__divider" aria-hidden="true">/</span>
+      <span>{{ page_title }}</span>
+
+    {% endif %}
+  </nav>
+{% endunless %}
+
+{% endif %}
