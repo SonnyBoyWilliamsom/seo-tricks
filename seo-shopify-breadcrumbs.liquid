@@ -132,3 +132,23 @@
 {% endunless %}
 
 {% endif %}
+
+{% for link in linklists.main-menu.links %}
+	{% for clink in link.links %}
+		{% for gclink in clink.links %}
+			{% for zclink in glink.links %}
+			{% endfor %}
+		{% endfor %}
+	{% endfor %}
+{% endfor %}
+
+
+
+{% for link in linklists.main-menu.links %}
+DO_SOMETHING_AND_PASS
+{% endfor %}
+
+{% for clink in link.links %}
+DO_SOMETHING_AND_PASS
+{% endfor %}
+...
